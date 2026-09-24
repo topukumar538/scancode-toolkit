@@ -431,9 +431,6 @@ def get_tokens(numbered_lines, splitter=re.compile(r'[\t =;]+').split):
         # space before in some cases: exclude (digit , (s , (c , (-
         # this allows to recover from words like KISA(Korean
         line = re.sub(pattern=r'(\([^rsc\-\d])', repl=r' \g<1>', string=line)
-
-        line = re.sub(r'\bAuthor:(?=\S)', 'Author ', line)
-        
         for tok in splitter(line):
             # strip trailing quotes+comma
             if tok.endswith("',"):
@@ -2045,6 +2042,8 @@ PATTERNS = [
     ############################################################################
 
     # "authors" or "contributors" is interesting, and so a tag of its own
+    # Author:Frankie.Chu
+    (r'^[Aa]uthor:[A-Z][a-z]+\.[A-Z][a-z]+,?$', 'AUTH-DOTTED'),
     (r'^[Aa]uthors,$', 'AUTHDOT'),
     (r'^[Aa]uthor$', 'AUTH'),
     (r'^[Aa]uthor\.$', 'AUTHDOT'),
@@ -2256,9 +2255,6 @@ PATTERNS = [
 
     # Uppercase dotted name, ie. P. or DMTF.
     (r'^([A-Z]+\.)+$', 'PN'),
-
-    # proper noun with a dotted first and last name, ie. Frankie.Chu
-    (r'^[A-Z][a-z]+\.[A-Z][a-z]+,?$', 'NAME'),
 
     # proper noun with some separator and trailing comma
     (r'^[A-Z]+\.[A-Z][a-z]+,?$', 'NNP'),
@@ -3533,6 +3529,9 @@ GRAMMAR = """
     # Author not attributable
     AUTHOR: {<AUTH>  <NN>  <NNP>} #not attributable
 
+    # Author:Frankie.Chu
+    AUTHOR: {<AUTH-DOTTED>}
+
     # author (Panagiotis Tsirigotis)
     AUTHOR: {<AUTH>  <NNP><NNP>+} #author Foo Bar
 
@@ -3681,6 +3680,8 @@ def refine_author(a):
     """
     if not a:
         return
+
+    a = re.sub(r'^[Aa]uthor:\s*', '', a)
     # FIXME: we could consider to split comma separated lists such as
     # gthomas, sorin@netappi.com, andrew.lunn@ascom.che.g.
     a = remove_some_extra_words_and_punct(a)
