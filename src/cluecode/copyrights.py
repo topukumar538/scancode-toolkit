@@ -431,6 +431,9 @@ def get_tokens(numbered_lines, splitter=re.compile(r'[\t =;]+').split):
         # space before in some cases: exclude (digit , (s , (c , (-
         # this allows to recover from words like KISA(Korean
         line = re.sub(pattern=r'(\([^rsc\-\d])', repl=r' \g<1>', string=line)
+
+        line = re.sub(r'\bAuthor:(?=\S)', 'Author ', line)
+        
         for tok in splitter(line):
             # strip trailing quotes+comma
             if tok.endswith("',"):
@@ -2253,6 +2256,9 @@ PATTERNS = [
 
     # Uppercase dotted name, ie. P. or DMTF.
     (r'^([A-Z]+\.)+$', 'PN'),
+
+    # proper noun with a dotted first and last name, ie. Frankie.Chu
+    (r'^[A-Z][a-z]+\.[A-Z][a-z]+,?$', 'NAME'),
 
     # proper noun with some separator and trailing comma
     (r'^[A-Z]+\.[A-Z][a-z]+,?$', 'NNP'),
